@@ -28,6 +28,7 @@ function Index() {
   useEffect(() => { try { setStudio(restoreStudio(localStorage.getItem(storageKey))); } catch { setSaveStatus('error'); } setReady(true); }, []);
   useEffect(() => { if (!ready) return; setSaveStatus('saving'); const timeout = setTimeout(() => { try { localStorage.setItem(storageKey, JSON.stringify(studio)); setSaveStatus('saved'); } catch { setSaveStatus('error'); } }, 350); return () => clearTimeout(timeout); }, [studio, ready]);
   useEffect(() => { document.documentElement.lang = language; document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'; }, [language]);
+  useEffect(() => { setNotice(''); }, [language]);
   useEffect(() => () => { if (noticeTimer.current) clearTimeout(noticeTimer.current); }, []);
   const notify = (message: string) => { setNotice(message); if (noticeTimer.current) clearTimeout(noticeTimer.current); noticeTimer.current = setTimeout(() => setNotice(''), 6000); };
   const download = () => { notify(t.exportSuccess); setTimeout(() => window.print(), 250); };
