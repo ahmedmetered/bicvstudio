@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## App architecture
+- Keep CV data and pure editing helpers in a browser-safe model module; render the editor and document separately so print output contains only the document.
+- Read and write browser persistence after hydration, never during SSR; this app intentionally uses localStorage rather than a backend.
