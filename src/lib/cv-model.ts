@@ -10,7 +10,9 @@ export const storageKey = 'cv-studio-v1';
 export function moveEntry<T>(items: T[], index: number, direction: number): T[] {
   const next = [...items]; const target = index + direction;
   if (target < 0 || target >= next.length) return next;
-  [next[index], next[target]] = [next[target], next[index]];
+  const current = next[index]; const other = next[target];
+  if (current === undefined || other === undefined) return next;
+  next[index] = other; next[target] = current;
   return next;
 }
 export function formatDate(value: string, language: Language) {
