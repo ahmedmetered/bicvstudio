@@ -32,3 +32,6 @@ use the editor.
 ## App architecture
 - Keep CV data and pure editing helpers in a browser-safe model module; render the editor and document separately so print output contains only the document.
 - Read and write browser persistence after hydration, never during SSR; this app intentionally uses localStorage rather than a backend.
+- Keep persisted template and accent identifiers stable; map their visual labels and colours in presentation code to preserve existing saved CVs.
+- Use dnd-kit sortable handles for entry dragging alongside existing move buttons; share the same CV change callback to retain all data and keyboard access.
+- Pre-optimize all dnd-kit packages together in Vite; late discovery can mix React module generations and crash hooks in an already-open preview.

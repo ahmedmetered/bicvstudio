@@ -15,7 +15,7 @@ export function CVPreview({ cv, language, template, accent }: { cv: CV; language
   const languages = cv.languages.length > 0 && section(t.languages, <div className="cv-languages">{cv.languages.map(item => <div key={item.id}><strong dir="auto">{item.name}</strong><span dir="auto">{item.level}</span></div>)}</div>);
   return <article id="cv-document" className={`cv-document template-${template} accent-${accent}`} dir={language === 'ar' ? 'rtl' : 'ltr'} lang={language} key={template}>
     <header className="cv-header">{cv.photo && <img src={cv.photo} alt={cv.name} className="cv-photo" />}<div><h2 dir="auto">{cv.name || t.empty}</h2><p dir="auto">{cv.title}</p><div className="cv-name-rule" /></div></header>
-    <div className="cv-columns"><aside className="cv-sidebar">{contact}{skills}{languages}</aside><main className="cv-main">
+    <div className="cv-columns"><aside className="cv-sidebar">{template === 'modern' && <div className="cv-initials" aria-hidden="true">{cv.name.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join('')}</div>}{contact}{skills}{languages}</aside><main className="cv-main">
       {cv.summary && section(t.profile, <p className="cv-summary" dir="auto">{cv.summary}</p>)}
       {cv.experience.length > 0 && section(t.experience, entries(cv.experience))}
       {cv.education.length > 0 && section(t.education, entries(cv.education))}

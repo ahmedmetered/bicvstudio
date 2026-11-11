@@ -1,5 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { UserRound, AlignLeft, BriefcaseBusiness, GraduationCap, Zap, Languages, Award, ChevronDown, Plus, Trash2, ArrowUp, ArrowDown, Camera, X, GripVertical } from 'lucide-react';
+import { UserRound, AlignLeft, BriefcaseBusiness, GraduationCap, Zap, Languages, Award, ChevronDown, Plus, Trash2, ArrowUp, ArrowDown, Camera, X } from 'lucide-react';
+import { DndContext, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableCVEntry } from '@/components/sortable-cv-entry';
 import { Button } from '@/components/ui/button';
 import { copy } from '@/lib/cv-copy';
 import { moveEntry, type CV, type Language, type Entry, type Skill } from '@/lib/cv-model';
@@ -8,6 +11,7 @@ export function CVEditor({ cv, language, onChange, onError }: { cv: CV; language
   const t = copy[language]; const [open, setOpen] = useState<string[]>(['personal']);
   const [skillName, setSkillName] = useState(''); const [skillLevel, setSkillLevel] = useState('');
   const [languageName, setLanguageName] = useState(''); const [languageLevel, setLanguageLevel] = useState('');
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const set = <K extends keyof CV>(key: K, value: CV[K]) => onChange({ ...cv, [key]: value });
   const field = (label: string, value: string, change: (value: string) => void, type = 'text', placeholder = '', hint?: string) => <label className="form-field"><span>{label}</span><input type={type} value={value} onChange={e => change(e.target.value)} placeholder={placeholder} dir={['email', 'tel', 'month'].includes(type) ? 'ltr' : 'auto'} />{hint && <small>{hint}</small>}</label>;
   const section = (key: string, Icon: typeof UserRound, title: string, hint: string, children: ReactNode, count?: number) => {
@@ -22,15 +26,17 @@ export function CVEditor({ cv, language, onChange, onError }: { cv: CV; language
   const entrySection = (key: 'experience' | 'education' | 'courses', Icon: typeof UserRound, label: string, hint: string, titleLabel: string, subtitleLabel: string, addLabel: string) => {
     const update = (index: number, prop: keyof Entry, value: string) => set(key, cv[key].map((item, i) => i === index ? { ...item, [prop]: value } : item));
     return section(key, Icon, label, hint, <>
-      {cv[key].map((item, index) => <div className="entry-editor" key={item.id}>
-        <div className="entry-toolbar"><GripVertical size={14} /><span>{titleLabel} {new Intl.NumberFormat(language).format(index + 1)}</span><div className="entry-actions">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={({ active, over }) => { if (!over || active.id === over.id) return; const from = cv[key].findIndex(item => item.id === active.id); const to = cv[key].findIndex(item => item.id === over.id); if (from >= 0 && to >= 0) set(key, arrayMove(cv[key], from, to)); }}><SortableContext items={cv[key].map(item => item.id)} strategy={verticalListSortingStrategy}>
+      {cv[key].map((item, index) => <SortableCVEntry id={item.id} label={`${language === 'ar' ? 'إعادة ترتيب' : 'Reorder'}: ${item.title || titleLabel}`} key={item.id}>
+        <div className="entry-toolbar"><span>{titleLabel} {new Intl.NumberFormat(language).format(index + 1)}</span><div className="entry-actions">
           <Button variant="ghost" size="icon" title={t.up} aria-label={t.up} disabled={index === 0} onClick={() => set(key, moveEntry(cv[key], index, -1))}><ArrowUp /></Button>
           <Button variant="ghost" size="icon" title={t.down} aria-label={t.down} disabled={index === cv[key].length - 1} onClick={() => set(key, moveEntry(cv[key], index, 1))}><ArrowDown /></Button>
           <Button variant="ghost" size="icon" title={t.remove} aria-label={t.remove} onClick={() => set(key, cv[key].filter((_, i) => i !== index))}><Trash2 /></Button>
         </div></div>
         <div className="field-grid">{field(titleLabel, item.title, v => update(index, 'title', v))}{field(subtitleLabel, item.subtitle, v => update(index, 'subtitle', v))}{field(t.start, item.start, v => update(index, 'start', v), 'month')}{field(t.end, item.end, v => update(index, 'end', v), 'month', '', t.current)}</div>
         <label className="form-field"><span>{t.description}</span><textarea rows={3} dir="auto" value={item.description} onChange={e => update(index, 'description', e.target.value)} /></label>
-      </div>)}
+      </SortableCVEntry>)}
+      </SortableContext></DndContext>
       <Button variant="outline" className="add-entry" onClick={() => set(key, [...cv[key], { id: crypto.randomUUID(), title: '', subtitle: '', start: '', end: '', description: '' }])}><Plus />{addLabel}</Button>
     </>, cv[key].length);
   };
